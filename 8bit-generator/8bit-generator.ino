@@ -1,89 +1,100 @@
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 32
-#define OLED_RESET -1
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-const int bitPins[8] = {2, 3, 4, 5, 6, 7, 8, 9};
-const int buttonTogglePin = 10;
-const int buttonNextPin = 11;
-// Variables
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+#define PWM_OUTPUT_PIN 9         
+#define BUTTON_TOGGLE_PIN 10    
+#define BUTTON_NEXT_PIN 11       
+
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+
 int currentBit = 0;
 int bits[8] = {0, 0, 0, 0, 0, 0, 0, 0}; 
-bool buttonToggleState = false;     
-bool lastButtonToggleState = false; 
-bool buttonNextState = false;       
-bool lastButtonNextState = false;   
+bool buttonToggleState = false;
+bool lastButtonToggleState = false;
+bool buttonNextState = false;
+bool lastButtonNextState = false;
+
 void setup() {
   
-  for (int i = 0; i < 8; i++) {
-    pinMode(bitPins[i], OUTPUT);
-  }
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Enter 8-bit:");
+
   
-  pinMode(buttonTogglePin, INPUT_PULLUP);
-  pinMode(buttonNextPin, INPUT_PULLUP);
-  
-  if (!display.begin(0x3C)) { 
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;);
-  }
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.display();
+  pinMode(PWM_OUTPUT_PIN, OUTPUT);
+  pinMode(BUTTON_TOGGLE_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_NEXT_PIN, INPUT_PULLUP);
+
   updateDisplay();
 }
+
 void loop() {
-  buttonToggleState = digitalRead(buttonTogglePin);
-  buttonNextState = digitalRead(buttonNextPin);
   
+  buttonToggleState = digitalRead(BUTTON_TOGGLE_PIN);
+  buttonNextState = digitalRead(BUTTON_NEXT_PIN);
+
+ 
   if (buttonToggleState == LOW && lastButtonToggleState == HIGH) {
-    
-    bits[currentBit] = !bits[currentBit];
+    bits[currentBit] = !bits[currentBit]; 
     updateDisplay();
   }
+
   
   if (buttonNextState == LOW && lastButtonNextState == HIGH) {
     if (currentBit == 7) {
-      updateLEDs();
-      delay(1000); 
+      updatePWMOutput(); 
+      delay(1000);       
       resetBits();
     } else {
       currentBit++; 
     }
     updateDisplay();
   }
+
   
   lastButtonToggleState = buttonToggleState;
   lastButtonNextState = buttonNextState;
 }
+
+
 void updateDisplay() {
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  
-  display.print("Enter 8-bit number:");
-  display.setCursor(0, 10);
-  
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Enter 8-bit:");
+
+  lcd.setCursor(0, 1);
   for (int i = 0; i < 8; i++) {
     if (i == currentBit) {
-      display.print("[");
+      lcd.print("[");
     }
-    display.print(bits[i]);
+    lcd.print(bits[i]);
     if (i == currentBit) {
-      display.print("]");
+      lcd.print("]");
+    } else {
+      lcd.print(" ");
     }
-    display.print(" ");
   }
-  display.display();
 }
-void updateLEDs() {
+
+
+void updatePWMOutput() {
+ 
+  int pwmValue = 0;
   for (int i = 0; i < 8; i++) {
-    digitalWrite(bitPins[i], bits[i]);
+    pwmValue |= (bits[i] << (7 - i)); 
   }
+
+  
+  analogWrite(PWM_OUTPUT_PIN, pwmValue);
 }
+
+
 void resetBits() {
   for (int i = 0; i < 8; i++) {
-    bits[i] = 0;
+    bits[i] = 0; 
   }
   currentBit = 0;
   updateDisplay();
