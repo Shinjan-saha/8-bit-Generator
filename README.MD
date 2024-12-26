@@ -19,6 +19,10 @@
 ## Working Circuit:-
 <img src="./img/tinkercad-8bit.png">
 
+## Working Schematics:-
+
+<img src="./img/8bit-schematics.png">
+
 ## Working Video:-
 https://youtu.be/RAQZt39dvdU
 
@@ -46,6 +50,11 @@ https://youtu.be/RAQZt39dvdU
 
 ## Working Circuit:-
 <img src="./img/tinkercad-16bit.png">
+
+
+## Working Schematics:-
+
+<img src="./img/16bit-schematics.png">
 
 ## Working Video:-
 https://youtu.be/Yb7OiI1hm20
